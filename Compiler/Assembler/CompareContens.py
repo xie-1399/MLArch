@@ -8,7 +8,10 @@ def ContentIsSame(sourcepath,testpath):
             if(operator.eq(Sourcelines,testlines)):  # Maybe use == also works
                 return True
             else:
-                return False
+                for i in range(0,len(Sourcelines)):
+                    if(Sourcelines[i] != testlines[i]):
+                        print("Wrong Line is " + str(i+1))
+                        return False
 
     except IOError as e:
         print("Can't find the file path")

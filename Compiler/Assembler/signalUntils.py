@@ -81,3 +81,6 @@ def writeintofile(filename,strlists):
     with open(filename,"w+") as wfile:
         for strlist in strlists:
             wfile.write(strlist + '\n')
+
+def converttobin(number):
+    return str(bin(number)).replace("0b","")

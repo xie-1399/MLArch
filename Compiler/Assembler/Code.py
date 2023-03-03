@@ -1,6 +1,5 @@
 #将对应的Hack语言的助记符转化为二进制码
 from signalUntils import *
-from Compiler.HackCompiler.Assembler.Parser import Parse
 from CompareContens import *
 
 class Code(object):
@@ -12,9 +11,12 @@ class Code(object):
             jumpbin = self.jump(signallist)
             if(signallist[2] == "A_COMMAND"):
                 self.codebin = "0" + fillzero(str(signallist[3]),15)
+                self.codebinlists.append(self.codebin)
+            elif(signallist[2] == "L_COMMAND"):
+                pass
             else:
                 self.codebin = "111" + str(compbin) + str(destbin) + str(jumpbin)
-            self.codebinlists.append(self.codebin)
+                self.codebinlists.append(self.codebin)
     def dest(self,signallist):
         destsignal = signallist[-3]
         if(destsignal == None) :

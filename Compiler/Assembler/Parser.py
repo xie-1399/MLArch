@@ -3,16 +3,18 @@
 #如果有循环指令的时候如何对是否还有指令能够进行判断？
 import re
 class Parse:
-    def __init__(self,File):
+    def __init__(self,File,FirstRead,TableList):
         self.asmvalidcodelists = []  #Todo 改进一下使用字典
+        self.TableLists = TableList
         if (File.endswith("asm")):
-            print("Load Asm File")
+            print("First Load Asm File:" + str(FirstRead))
             with open(File, 'r') as asmfile:
                 asmlines = asmfile.readlines()
             self.asmvalidcodes = self.clear(asmlines)  #汇编文件的字符串列表 "HasMoreCommand,advance,commandType,symbol,dest,comp:"
-            for i in range(0, len(self.asmvalidcodes)):
-                self.asmvalidcodelists.append(self.Process(self.asmvalidcodes))
-                self.asmvalidcodes.pop(0)
+            if(not FirstRead):
+                for i in range(0, len(self.asmvalidcodes)):
+                    self.asmvalidcodelists.append(self.Process(self.asmvalidcodes))
+                    self.asmvalidcodes.pop(0)
         else:
             print("The File is Not a Assembler File")
 
@@ -65,9 +67,17 @@ class Parse:
 
     def symbol(self,asmcode):
         if(self.commandType(asmcode) == "A_COMMAND"):
-            return str(bin(int(str(asmcode).lstrip("@")))).replace("0b","")  #Todo
+            if(str(asmcode).lstrip("@").isdigit()):
+                return str(bin(int(str(asmcode).lstrip("@")))).replace("0b", "")  # change the lable signal
+            else:
+                labelsignal =self.TableLists.get((str(asmcode).lstrip("@")))
+                return str(bin(int(labelsignal))).replace("0b", "")
         if(self.commandType(asmcode) == "L_COMMAND"):
-            return str(asmcode).lstrip('(').rstrip(')')
+            Lcommandsignal = str(asmcode).lstrip('(').rstrip(')')
+            if(Lcommandsignal.isdigit()):
+                return Lcommandsignal
+            else:
+                return str(self.TableLists.get(Lcommandsignal))
         return None
 
     def dest(self,asmcode):
@@ -97,5 +107,3 @@ class Parse:
             return str(asmcode).split(";")[-1]
         else:
             return None
-
-#parse = Parse("./test/Add.asm")
