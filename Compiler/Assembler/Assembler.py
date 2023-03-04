@@ -1,10 +1,9 @@
 #Assembler 编译器
 from Compiler.Assembler.Code import Code
-from Compiler.Assembler.CompareContens import ContentIsSame
 from Compiler.Assembler.Parser import Parse
 from Compiler.Assembler.SymbolTable import SymbolTable
 from Compiler.Assembler.signalUntils import writeintofile
-
+from Compiler.utils.HackCommonUntils import *
 
 #dest = comp ; jump
 if __name__ == '__main__':
@@ -13,7 +12,6 @@ if __name__ == '__main__':
           parse = Parse("./test/"+ TestfileLists[i] + ".asm",FirstRead=True,TableList={})
           #First Read Add sysmbol to table
           symboltables = SymbolTable(parse.asmvalidcodes,TableList={},getornot=True)
-
 
           #Second convert the signal
           # print(symboltables.TableList)

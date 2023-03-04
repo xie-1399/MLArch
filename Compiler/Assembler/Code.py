@@ -1,6 +1,5 @@
 #将对应的Hack语言的助记符转化为二进制码
 from signalUntils import *
-from CompareContens import *
 
 class Code(object):
     def __init__(self,signallists):
