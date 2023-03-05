@@ -6,7 +6,7 @@
 
 （1）实现一个简单的完整的编译器（HackCompiler）
 
-![image](/HackCompiler.png)
+![image](https://github.com/xie-1399/MLArch/blob/master/Compiler/HackCompiler.png)
 
 **难度：⭐⭐⭐**
 
