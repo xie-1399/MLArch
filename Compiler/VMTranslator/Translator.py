@@ -29,8 +29,9 @@ if __name__ == '__main__':
     print("parser vmcodeList:",parse.vmcodeList)
 
     #Write into File
-    CodeWriter("./AddTest.asm",parse.vmcodeList)
 
-    print(ContentIsSame("./test/SimpleAdd.asm","./AddTest.asm"))
+    CodeWriter("./StackTest.asm",parse.vmcodeList)
+
+    print(ContentIsSame("./test/StackTest.asm","./StackTest.asm"))
 
 

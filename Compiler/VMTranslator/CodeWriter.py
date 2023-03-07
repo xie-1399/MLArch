@@ -5,6 +5,7 @@ from CommandsTable import *
 class CodeWriter(object):
     def __init__(self,WriteFile,vmcodeList):
         self.asmwritelist = []
+        self.eqcounter = 0
         with open(WriteFile,"w+") as asmfile:
             for vmcode in vmcodeList:
                 self.writeArithmetic(vmcode)  #Todo
@@ -14,8 +15,9 @@ class CodeWriter(object):
     #算数操作对应的汇编代码
     def writeArithmetic(self,vmcode):
         if(vmcode[2] == "C_ARITHMETIC"):
+            arithType = ArithmeticType.get(vmcode[3])
             variable = ArithmeticCommands.get(vmcode[3])
-            asmArilist = self.ArithmeticTemplate(variable)
+            asmArilist = self.ArithmeticTemplate(variable,arithType)
             self.asmwritelist.append(asmArilist)
         else:
             return None
@@ -29,8 +31,45 @@ class CodeWriter(object):
             variable = True
             self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable))
 
-    def ArithmeticTemplate(self,variable):
-        asmstrlist = ["@SP","AM=M-1","D=M","@SP","AM=M-1",variable,"@SP","M=M+1"]
+    def ArithmeticTemplate(self,variable,arithType):
+        match arithType:
+            case 0|1:
+                asmstrlist = ["@SP","AM=M-1","D=M","@SP","AM=M-1",variable,"@SP","M=M+1"]
+            case 2:
+                asmstrlist = ['@SP', 'A=M-1', 'M=-M']
+            case 3:
+                asmstrlist = [ "@SP","M=M-1","A=M","D=M","@SP","M=M-1","A=M","D=D-M","@COND.FALSE.{eqcount}".format(eqcount= self.eqcounter),
+                               "D;JNE","@SP","A=M","M=-1", "@COND.TRUE.{eqcount}".format(eqcount= self.eqcounter),"0;JMP",
+                               "(COND.FALSE.{eqcount})".format(eqcount= self.eqcounter),"@SP","A=M","M=0","(COND.TRUE.{eqcount})".format(eqcount= self.eqcounter),
+                               "@SP","M=M+1"]
+                self.eqcounter += 1
+            case 4:
+
+                asmstrlist = ['@SP', 'M=M-1', 'A=M', 'D=M', '@R13', 'M=D', '@SP', 'M=M-1', 'A=M', 'D=M', '@R14', 'M=D', '@R14', 'D=M', '@GT.XPOS.{eqcount}'.format(eqcount= self.eqcounter),
+                               'D;JGT', '@GT.XNEG.{eqcount}'.format(eqcount= self.eqcounter), 'D;JLT', '@GT.NO.OF.{eqcount}'.format(eqcount= self.eqcounter), '0;JMP', '(GT.XPOS.{eqcount})'.format(eqcount= self.eqcounter), '@R13', 'D=M', '@GT.XPOS.YNEG.{eqcount}'.format(eqcount= self.eqcounter), 'D;JLT',
+                               '@GT.NO.OF.{eqcount}'.format(eqcount= self.eqcounter), '0;JMP', '(GT.XNEG.{eqcount})'.format(eqcount= self.eqcounter), '@R13', 'D=M', '@GT.XNEG.YPOS.{eqcount}'.format(eqcount= self.eqcounter), 'D;JGT', '(GT.NO.OF.{eqcount})'.format(eqcount= self.eqcounter), '@R13', 'D=M', '@R14',
+                               'D=M-D', '@GT.FALSE.{eqcount}'.format(eqcount= self.eqcounter), 'D;JLE', '@SP', 'A=M', 'M=-1', '@GT.TRUE.{eqcount}'.format(eqcount= self.eqcounter), '0;JMP', '(GT.FALSE.{eqcount})'.format(eqcount= self.eqcounter), '@SP', 'A=M', 'M=0', '(GT.TRUE.{eqcount})'.format(eqcount= self.eqcounter),
+                               '@GT.END.{eqcount}'.format(eqcount= self.eqcounter), '0;JMP', '(GT.XNEG.YPOS.{eqcount})'.format(eqcount= self.eqcounter), '@SP', 'A=M', 'M=0', '@GT.END.{eqcount}'.format(eqcount= self.eqcounter), '0;JMP', '(GT.XPOS.YNEG.{eqcount})'.format(eqcount= self.eqcounter), '@SP', 'A=M', 'M=-1', '(GT.END.{eqcount})'.format(eqcount= self.eqcounter), '@SP', 'M=M+1']
+                self.eqcounter += 1
+
+            case 5:
+                asmstrlist = ["@SP","M=M-1","A=M","D=M","@R13","M=D","@SP","M=M-1","A=M","D=M","@R14","M=D",
+                             "@R14","D=M","@LT.XNEG.{eqcount}".format(eqcount= self.eqcounter),"D;JLT","@LT.XPOS.{eqcount}".format(eqcount= self.eqcounter),"D;JGT","@LT.NO.OF.{eqcount}".format(eqcount= self.eqcounter),"0;JMP",
+                              "(LT.XNEG.{eqcount})".format(eqcount= self.eqcounter),"@R13","D=M","@LT.XNEG.YPOS.{eqcount}".format(eqcount= self.eqcounter),"D;JGT","@LT.NO.OF.{eqcount}".format(eqcount= self.eqcounter),"0;JMP",
+                              "(LT.XPOS.{eqcount})".format(eqcount= self.eqcounter),"@R13","D=M","@LT.XPOS.YNEG.{eqcount}".format(eqcount= self.eqcounter),"D;JLT","(LT.NO.OF.{eqcount})".format(eqcount= self.eqcounter),"@R13",
+                              "D=M","@R14","D=D-M","@LT.FALSE.{eqcount}".format(eqcount= self.eqcounter),"D;JLE","@SP","A=M","M=-1","@LT.TRUE.{eqcount}".format(eqcount= self.eqcounter),
+                              "0;JMP","(LT.FALSE.{eqcount})".format(eqcount= self.eqcounter),"@SP","A=M","M=0","(LT.TRUE.{eqcount})".format(eqcount= self.eqcounter),"@LT.END.{eqcount}".format(eqcount= self.eqcounter),"0;JMP",
+                              "(LT.XPOS.YNEG.{eqcount})".format(eqcount= self.eqcounter),"@SP","A=M","M=0","@LT.END.{eqcount}".format(eqcount= self.eqcounter),"0;JMP","(LT.XNEG.YPOS.{eqcount})".format(eqcount= self.eqcounter),
+                              "@SP","A=M","M=-1","(LT.END.{eqcount})".format(eqcount= self.eqcounter),"@SP","M=M+1"]
+                self.eqcounter += 1
+            case 6:
+                asmstrlist = ['@SP', 'M=M-1', 'A=M', 'D=M', '@SP', 'A=M-1', 'M=M&D']
+            case 7:
+                asmstrlist = ['@SP', 'M=M-1', 'A=M', 'D=M', '@SP', 'A=M-1', 'M=M|D']
+            case 8:
+                asmstrlist = ['@SP', 'A=M-1',"M=!M"]
+            case _:
+                print("Can't match any ArithType")
         return asmstrlist
 
     def PushPopTemplate(self,number,variable): #Todo

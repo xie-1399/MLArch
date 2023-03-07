@@ -209,7 +209,7 @@ M=-1
     M=0
     @LT.END.3
     0;JMP
-    
+
 (LT.XNEG.YPOS.3)
     @SP
     A=M
@@ -300,7 +300,7 @@ M=-1
     M=0
     @LT.END.4
     0;JMP
-    
+
 (LT.XNEG.YPOS.4)
     @SP
     A=M
@@ -391,7 +391,7 @@ M=-1
     M=0
     @LT.END.5
     0;JMP
-    
+
 (LT.XNEG.YPOS.5)
     @SP
     A=M
@@ -482,7 +482,7 @@ M=-1
     M=0
     @GT.END.6
     0;JMP
-    
+
 (GT.XPOS.YNEG.6)
     @SP
     A=M
@@ -573,7 +573,7 @@ M=-1
     M=0
     @GT.END.7
     0;JMP
-    
+
 (GT.XPOS.YNEG.7)
     @SP
     A=M
@@ -664,7 +664,7 @@ M=-1
     M=0
     @GT.END.8
     0;JMP
-    
+
 (GT.XPOS.YNEG.8)
     @SP
     A=M
