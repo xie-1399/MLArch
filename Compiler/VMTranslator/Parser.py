@@ -1,7 +1,6 @@
 
 #Version  1
 #1:Memory Access Commands 2:Arithmetic and Logical Commands
-
 class Parser(object):
     def __init__(self,File):
         try:
@@ -11,19 +10,19 @@ class Parser(object):
                 return
             with open(File,"r") as Vmfile:
                 self.vmlines = Vmfile.readlines()
+                self.vmcodes = self.clear(self.vmlines)
+                self.clearvmcodes = self.clear(self.vmlines)
+                for i in range(0,len(self.vmcodes)):
+                    self.vmcodeList.append(self.Process(self.vmcodes))
+                    self.vmcodes.pop(0)
                 Vmfile.close()
-            self.vmcodes = self.clear(self.vmlines)
-            for vmcode in self.vmcodes:
-                self.vmcodeList.append(self.Process())
-                self.vmcodes.pop()
-
 
         except IOError as e:
             print("The file is not exit!")
 
-    def Process(self):
-        hasMoreCommands = self.hasMoreCommands(self.vmcodes)
-        advance = self.advance(hasMoreCommands,self.vmcodes)
+    def Process(self,vmcodes):
+        hasMoreCommands = self.hasMoreCommands(vmcodes)
+        advance = self.advance(hasMoreCommands,vmcodes)
         commandType = self.commandType(advance)
         Arg1 = self.Arg1(advance,commandType)
         Arg2 = self.Arg2(advance,commandType)
