@@ -62,4 +62,4 @@ def getfileAritrhTemplate(file,content):
         strlist.pop(-1)
         return strlist
 
-print(getfileAritrhTemplate("../VMTranslator/test/StackTest.asm", "//sub"))
+# print(getfileAritrhTemplate("../VMTranslator/test/BasicTest.asm", "//push argument 1"))

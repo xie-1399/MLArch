@@ -6,6 +6,7 @@ M=M+1
 A=M-1
 M=D
 
+//pop local 0
 @LCL
 D=M
 @0
@@ -19,6 +20,7 @@ D=M
 A=M
 M=D
 
+//push constant 21
 @21
 D=A
 @SP
@@ -33,6 +35,7 @@ M=M+1
 A=M-1
 M=D
 
+//pop argument 2
 @ARG
 D=M
 @2
@@ -46,6 +49,7 @@ D=M
 A=M
 M=D
 
+//pop argument 1
 @ARG
 D=M
 @1
@@ -126,6 +130,7 @@ M=M+1
 A=M-1
 M=D
 
+//pop temp 6
 @5
 D=A
 @6
@@ -139,6 +144,7 @@ D=M
 A=M
 M=D
 
+//push local 0
 @LCL
 D=M
 @0
@@ -149,6 +155,7 @@ A=M
 M=D
 @SP
 M=M+1
+//push that 5
 @THAT
 D=M
 @5
@@ -169,7 +176,7 @@ A=M
 M=D+M
 @SP
 M=M+1
-
+//push argument 1
 @ARG
 D=M
 @1
@@ -180,6 +187,8 @@ A=M
 M=D
 @SP
 M=M+1
+
+//sub
 @SP
 M=M-1
 A=M
@@ -233,6 +242,7 @@ M=M-D
 @SP
 M=M+1
 
+//push temp 6
 @5
 D=A
 @6
@@ -254,6 +264,7 @@ M=D+M
 @SP
 M=M+1
 
+//add
 @SP
 M=M-1
 A=M

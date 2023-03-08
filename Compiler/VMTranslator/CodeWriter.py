@@ -25,11 +25,13 @@ class CodeWriter(object):
     #Just For Pop And Push
     def WritePushPop(self,vmcode):
         if(vmcode[2] == "C_POP"):
+            popOrpushType = memoryAccessType.get(vmcode[3])
             variable = False
-            self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable))
+            self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable,popOrpushType))
         elif(vmcode[2] == "C_PUSH"):
+            popOrpushType = memoryAccessType.get(vmcode[3])
             variable = True
-            self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable))
+            self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable,popOrpushType))
 
     def ArithmeticTemplate(self,variable,arithType):
         match arithType:
@@ -72,9 +74,47 @@ class CodeWriter(object):
                 print("Can't match any ArithType")
         return asmstrlist
 
-    def PushPopTemplate(self,number,variable): #Todo
+    def PushPopTemplate(self,number,variable,popOrpushType): #Todo
         if(variable):
-            asmstrlist = ["@"+str(number),"D=A","@SP","M=M+1","A=M-1","M=D"]  #Push
+            match popOrpushType:
+                case 0:
+                    asmstrlist = ['@ARG', 'D=M', '@' + str(number), 'A=D+A', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
+                case 1:
+                    asmstrlist = ['@LCL', 'D=M', '@'+str(number), 'A=D+A', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
+                case 2:
+                    asmstrlist = ['@StaticTest.{number}'.format(number=number), 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
+                case 3 :
+                    asmstrlist = ["@"+str(number),"D=A","@SP","M=M+1","A=M-1","M=D"]  #Push Constant
+                case 4:
+                    asmstrlist = ['@THIS', 'D=M', '@'+str(number), 'A=D+A', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
+                case 5:
+                    asmstrlist =['@THAT', 'D=M', '@'+str(number), 'A=D+A', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
+                case 6:
+                    if(number == "0"):
+                        asmstrlist = ['@THIS', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
+                    else:
+                        asmstrlist = ['@THAT', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
+                case 7:
+                    asmstrlist = ['@5', 'D=A', '@'+str(number), 'A=D+A', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1', '@SP', 'M=M-1', 'A=M', 'D=M', '@SP', 'M=M-1', 'A=M', 'M=D+M', '@SP', 'M=M+1']
         else:
-            asmstrlist = ["@"+str(number),"D=A","@SP","M=M-1","A=M+1","M=D"]  #Pop
+            match popOrpushType:
+                case 0:
+                    asmstrlist = ['@ARG', 'D=M', '@' + str(number), 'D=D+A', '@R13', 'M=D', '@SP', 'AM=M-1', 'D=M', '@R13', 'A=M', 'M=D']
+                case 1:
+                    asmstrlist = ['@LCL', 'D=M', '@' + str(number), 'D=D+A', '@R13', 'M=D', '@SP', 'AM=M-1', 'D=M', '@R13', 'A=M', 'M=D']
+                case 2:
+                    asmstrlist = ['@SP', 'AM=M-1', 'D=M', '@StaticTest.{number}'.format(number=number), 'M=D']
+                case 3 :
+                    asmstrlist = ["@"+str(number),"D=A","@SP","M=M-1","A=M+1","M=D"]  #Pop Constant
+                case 4:
+                    asmstrlist = ['@THIS', 'D=M', '@'+str(number), 'D=D+A', '@R13', 'M=D', '@SP', 'AM=M-1', 'D=M', '@R13', 'A=M', 'M=D']
+                case 5:
+                    asmstrlist = ['@THAT', 'D=M', '@'+str(number), 'D=D+A', '@R13', 'M=D', '@SP', 'AM=M-1', 'D=M', '@R13', 'A=M', 'M=D']
+                case 6:
+                    if(number == "0"):
+                        asmstrlist = ['@SP', 'M=M-1', 'A=M', 'D=M', '@THIS', 'M=D']  #pointer has 0 and 1
+                    else:
+                        asmstrlist = ['@SP', 'M=M-1', 'A=M', 'D=M', '@THAT', 'M=D']
+                case 7:
+                    asmstrlist = ['@5', 'D=A', '@'+str(number), 'D=D+A', '@R13', 'M=D', '@SP', 'AM=M-1', 'D=M', '@R13', 'A=M', 'M=D']
         return asmstrlist

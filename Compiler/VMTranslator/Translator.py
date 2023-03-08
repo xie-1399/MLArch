@@ -30,8 +30,6 @@ if __name__ == '__main__':
 
     #Write into File
 
-    CodeWriter("./StackTest.asm",parse.vmcodeList)
-
-    print(ContentIsSame("./test/StackTest.asm","./StackTest.asm"))
-
-
+    CodeWriter("./BasicTest.asm",parse.vmcodeList)
+    print(ContentIsSame("./test/BasicTest.asm","./BasicTest.asm"))
+#Basic Test still has problems
