@@ -34,6 +34,7 @@ class CodeWriter(object):
             self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable,popOrpushType))
 
     def ArithmeticTemplate(self,variable,arithType):
+        asmstrlist = []
         match arithType:
             case 0|1:
                 asmstrlist = ["@SP","AM=M-1","D=M","@SP","AM=M-1",variable,"@SP","M=M+1"]
@@ -75,6 +76,7 @@ class CodeWriter(object):
         return asmstrlist
 
     def PushPopTemplate(self,number,variable,popOrpushType): #Todo
+        asmstrlist = []
         if(variable):
             match popOrpushType:
                 case 0:
@@ -96,6 +98,8 @@ class CodeWriter(object):
                         asmstrlist = ['@THAT', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
                 case 7:
                     asmstrlist = ['@5', 'D=A', '@'+str(number), 'A=D+A', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1', '@SP', 'M=M-1', 'A=M', 'D=M', '@SP', 'M=M-1', 'A=M', 'M=D+M', '@SP', 'M=M+1']
+                case _:
+                    print("Can't match any PushType")
         else:
             match popOrpushType:
                 case 0:
@@ -117,4 +121,6 @@ class CodeWriter(object):
                         asmstrlist = ['@SP', 'M=M-1', 'A=M', 'D=M', '@THAT', 'M=D']
                 case 7:
                     asmstrlist = ['@5', 'D=A', '@'+str(number), 'D=D+A', '@R13', 'M=D', '@SP', 'AM=M-1', 'D=M', '@R13', 'A=M', 'M=D']
+                case _:
+                    print("Can't match any PopType")
         return asmstrlist

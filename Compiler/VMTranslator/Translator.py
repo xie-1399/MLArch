@@ -19,17 +19,22 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description= "Compile the vm code to the asmcode")
 
-    parser.add_argument("--name",required=True,help="The file path")
-
+    parser.add_argument("--name",required=False,help="The file path")
+    parser.add_argument("--all",required=True,default=False,help="The file path")
     args = parser.parse_args()
 
-    #Convert vm
-    parse = Parser(args.name)
-    print("clear vmcodes:", parse.clearvmcodes)
-    print("parser vmcodeList:",parse.vmcodeList)
-
     #Write into File
-
-    CodeWriter("./BasicTest.asm",parse.vmcodeList)
-    print(ContentIsSame("./test/BasicTest.asm","./BasicTest.asm"))
-#Basic Test still has problems
+    if(args.all):
+        filelist = ["./test/BasicTest.vm","./test/PointerTest.vm","./test/SimpleAdd.vm","./test/SimpleEQ.vm"
+            ,"./test/StackTest.vm","./test/StaticTest.vm"]
+        for file in filelist:
+            parse = Parser(file)
+            CodeWriter("./allTest.asm", parse.vmcodeList)
+            print(ContentIsSame(file.replace("vm","asm"), "./allTest.asm"))
+    else:
+        parse = Parser(args.name)
+        print("clear vmcodes:", parse.clearvmcodes)
+        print("parser vmcodeList:", parse.vmcodeList)
+        CodeWriter("./BasicTest.asm",parse.vmcodeList)
+        print(ContentIsSame("./test/BasicTest.asm","./BasicTest.asm"))
+#Basic Test still has problems  python Translator.py --all 1

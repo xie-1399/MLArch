@@ -26,7 +26,7 @@ ArithmeticType = {"add":0,
 
 memoryAccessType = {
     "argument":0,
-    "loacl":1,
+    "local":1,
     "static":2,
     "constant":3,
     "this":4,
