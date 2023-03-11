@@ -31,10 +31,13 @@ class Parser(object):
     def clear(self,vmlines):
         vmcodes = []
         for vmline in vmlines:
+            #注意内部的注释也是需要去清除的
             if(str(vmline).startswith("//") or str(vmline) == "\n"):
                 continue
             else:
-                vmline = vmline.rstrip("\n").lstrip()
+                vmline = vmline.rstrip("\n").strip().replace("\t","")
+                if(vmline.find("//"))!=-1:
+                    vmline = vmline.split("//")[0]
                 #vmline = vmline.replace(" ","") #中间的空格暂时不用去除
                 vmcodes.append(str(vmline))
         return vmcodes
@@ -53,11 +56,17 @@ class Parser(object):
             print("Advance Command is None")
 
     def commandType(self,vmcode):  #Todo
-        #v1暂时只考虑计算和访存两种类型
+        #加入控制流指令
         if(str(vmcode).startswith("pop")):
             return "C_POP"
         elif(str(vmcode).startswith("push")):
             return "C_PUSH"
+        elif(str(vmcode).startswith("label")):
+            return "C_LABEL"
+        elif(str(vmcode).startswith("goto")):
+            return "C_GOTO"
+        elif(str(vmcode).startswith("if-goto")):
+            return "C_IF"
         else:
             return "C_ARITHMETIC"
 

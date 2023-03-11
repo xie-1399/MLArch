@@ -3,13 +3,17 @@ from CommandsTable import *
 #这里可能在A寄存器上行为有一些奇怪，可以想象成是在保护对应的现场一样
 #如果是push/pop一个数的流程 （1）把这个数先要存到对应的D寄存器里面去（通过A寄存器） （2）然后对应进栈，栈顶（+-），将之前的Sp值存入A （3）数据进入对应的内存单元
 class CodeWriter(object):
-    def __init__(self,WriteFile,vmcodeList):
+    def __init__(self,WriteFile,vmcodeList,filename):
         self.asmwritelist = []
         self.eqcounter = 0
+        self.filename = filename
         with open(WriteFile,"w+") as asmfile:
             for vmcode in vmcodeList:
                 self.writeArithmetic(vmcode)  #Todo
-                self.WritePushPop(vmcode)
+                self.writePushPop(vmcode)
+                self.writeLabel(vmcode)
+                self.writeGoto(vmcode)
+                self.writeIFGoto(vmcode)
             asmfile.write(str(self.asmwritelist))
 
     #算数操作对应的汇编代码
@@ -22,8 +26,31 @@ class CodeWriter(object):
         else:
             return None
 
+    def writeLabel(self,vmcode):
+        if(vmcode[2] == "C_LABEL"):
+            variable = vmcode[3] #Label Name
+            asmLabellist = self.LabelTemplate(variable,self.filename)
+            self.asmwritelist.append(asmLabellist)
+        else:
+            return None
+
+    def writeGoto(self,vmcode):
+        if (vmcode[2] == "C_GOTO"):
+            variable = vmcode[3]
+            asmgotolist = self.GotoTemplate(variable,self.filename)
+            self.asmwritelist.append(asmgotolist)
+        else:
+            return None
+    def writeIFGoto(self,vmcode):
+        if (vmcode[2] == "C_IF"):
+            variable = vmcode[3]
+            asmifgotolist = self.IFGotoTemplate(variable,self.filename)
+            self.asmwritelist.append(asmifgotolist)
+        else:
+            return None
+
     #Just For Pop And Push
-    def WritePushPop(self,vmcode):
+    def writePushPop(self,vmcode):
         if(vmcode[2] == "C_POP"):
             popOrpushType = memoryAccessType.get(vmcode[3])
             variable = False
@@ -32,6 +59,17 @@ class CodeWriter(object):
             popOrpushType = memoryAccessType.get(vmcode[3])
             variable = True
             self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable,popOrpushType))
+
+    def LabelTemplate(self,variable,filename):
+        asmstrlist = ["({filename}.main${variable})".format(filename =filename,variable = variable)]
+        return asmstrlist
+
+    def GotoTemplate(self,variable,filename):
+        asmstrlist = ["@{filename}.main${variable}".format(filename =filename,variable = variable),"0;JMP"]
+        return asmstrlist
+    def IFGotoTemplate(self,variable,filename):
+        asmstrlist = ['@SP', 'AM=M-1', 'D=M', '@1', 'D=D+A', '@{filename}.main${variable}'.format(filename =filename,variable = variable), 'D;JNE']
+        return asmstrlist
 
     def ArithmeticTemplate(self,variable,arithType):
         asmstrlist = []

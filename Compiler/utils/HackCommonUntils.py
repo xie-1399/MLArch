@@ -66,4 +66,4 @@ def getfileAritrhTemplate(file,content):
         strlist.pop(-1)
         return strlist
 
-# print(getfileAritrhTemplate("../VMTranslator/test/BasicTest.asm", "//push argument 1"))
+# print(getfileAritrhTemplate("../VMTranslator/test/BasicLoop.asm", "//if-goto LOOP_START"))
