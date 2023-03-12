@@ -3,73 +3,156 @@ from CommandsTable import *
 #这里可能在A寄存器上行为有一些奇怪，可以想象成是在保护对应的现场一样
 #如果是push/pop一个数的流程 （1）把这个数先要存到对应的D寄存器里面去（通过A寄存器） （2）然后对应进栈，栈顶（+-），将之前的Sp值存入A （3）数据进入对应的内存单元
 class CodeWriter(object):
-    def __init__(self,WriteFile,vmcodeList,filename):
+    def __init__(self,WriteFile,vmcodeList,filename,boot):
         self.asmwritelist = []
         self.eqcounter = 0
-        self.filename = filename
+        self.callcounter = {}   #在调用相同函数时才会++
+        self.filename = filename  #Maybe change
+        self.initFinish = False
+        self.boot = boot
         with open(WriteFile,"w+") as asmfile:
+            if(self.boot):
+                self.asmwritelist.append(self.BootTemplate())
+                #入口的Function
+                self.asmwritelist.append(self.FunctrionTemplate("Sys.init",0))
             for vmcode in vmcodeList:
-                self.writeArithmetic(vmcode)  #Todo
-                self.writePushPop(vmcode)
-                self.writeLabel(vmcode)
-                self.writeGoto(vmcode)
-                self.writeIFGoto(vmcode)
+                if vmcode[3] == "Sys.init": #Sysinit will call the function
+                    self.asmwritelist.append(["(Sys.init)"])
+                    self.initFinish = True
+                    continue
+                commandtype = CommandTypes.get(vmcode[2])
+                match commandtype:
+                    case 1:
+                        self.writeArithmetic(vmcode)
+                    case 2:
+                        self.writeLabel(vmcode)
+                    case 3:
+                        self.writeGoto(vmcode)
+                    case 4:
+                        self.writeIFGoto(vmcode)
+                    case 5|6:
+                        self.writePushPop(vmcode)
+                    case 7:
+                        self.filename = str(vmcode[3]).split(".")[0]   #Todo
+                        self.writeFunction(vmcode)
+                    case 8:
+                        self.writeReturn(vmcode)
+                    case 9:
+                        self.writeCall(vmcode)
+                    case _:
+                        print("commandType is not valid!")
             asmfile.write(str(self.asmwritelist))
 
     #算数操作对应的汇编代码
     def writeArithmetic(self,vmcode):
-        if(vmcode[2] == "C_ARITHMETIC"):
-            arithType = ArithmeticType.get(vmcode[3])
-            variable = ArithmeticCommands.get(vmcode[3])
-            asmArilist = self.ArithmeticTemplate(variable,arithType)
-            self.asmwritelist.append(asmArilist)
-        else:
-            return None
+        arithType = ArithmeticType.get(vmcode[3])
+        variable = ArithmeticCommands.get(vmcode[3])
+        asmArilist = self.ArithmeticTemplate(variable,arithType)
+        self.asmwritelist.append(asmArilist)
 
     def writeLabel(self,vmcode):
-        if(vmcode[2] == "C_LABEL"):
-            variable = vmcode[3] #Label Name
-            asmLabellist = self.LabelTemplate(variable,self.filename)
-            self.asmwritelist.append(asmLabellist)
-        else:
-            return None
+        variable = vmcode[3] #Label Name
+        asmLabellist = self.LabelTemplate(variable,self.filename)
+        self.asmwritelist.append(asmLabellist)
 
     def writeGoto(self,vmcode):
-        if (vmcode[2] == "C_GOTO"):
-            variable = vmcode[3]
-            asmgotolist = self.GotoTemplate(variable,self.filename)
-            self.asmwritelist.append(asmgotolist)
-        else:
-            return None
+        variable = vmcode[3]
+        asmgotolist = self.GotoTemplate(variable,self.filename)
+        self.asmwritelist.append(asmgotolist)
+
     def writeIFGoto(self,vmcode):
-        if (vmcode[2] == "C_IF"):
-            variable = vmcode[3]
-            asmifgotolist = self.IFGotoTemplate(variable,self.filename)
-            self.asmwritelist.append(asmifgotolist)
-        else:
-            return None
+        variable = vmcode[3]
+        asmifgotolist = self.IFGotoTemplate(variable,self.filename)
+        self.asmwritelist.append(asmifgotolist)
+
 
     #Just For Pop And Push
     def writePushPop(self,vmcode):
         if(vmcode[2] == "C_POP"):
             popOrpushType = memoryAccessType.get(vmcode[3])
             variable = False
-            self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable,popOrpushType))
+            self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable,popOrpushType,self.filename))
         elif(vmcode[2] == "C_PUSH"):
             popOrpushType = memoryAccessType.get(vmcode[3])
             variable = True
-            self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable,popOrpushType))
+            self.asmwritelist.append(self.PushPopTemplate(vmcode[4],variable,popOrpushType,self.filename))
+
+    def writeFunction(self,vmcode):
+        #Local parameters
+        functionname = vmcode[3]
+        numlocals = vmcode[4]
+        if(not str(numlocals).isdigit()):
+            raise ValueError("the localnum must be a number!")
+        else:
+            #如果初始化为0，那么就会代表是初始化函数
+            asmfunctionlist = self.FunctrionTemplate(functionname,int(numlocals))
+            self.asmwritelist.append(asmfunctionlist)
+
+    def writeReturn(self,vmcode):
+        asmreturnlist = self.ReturnTemplate()
+        self.asmwritelist.append(asmreturnlist)
+
+    def writeCall(self,vmcode):
+        callname = vmcode[3]
+        number = vmcode[4]
+        asmcalllist = self.CallTemplate(callname,number)
+        self.asmwritelist.append(asmcalllist)
+
+    def BootTemplate(self):
+        asmstrlist = ['@256', 'D=A', '@SP', 'M=D', '@Sys.init$ret.0', 'D=A', '@SP', 'M=M+1', 'A=M-1', 'M=D', '@LCL', 'D=M', '@SP', 'M=M+1',
+                      'A=M-1', 'M=D', '@ARG', 'D=M', '@SP', 'M=M+1', 'A=M-1', 'M=D', '@THIS', 'D=M', '@SP', 'M=M+1', 'A=M-1', 'M=D', '@THAT',
+                      'D=M', '@SP', 'M=M+1', 'A=M-1', 'M=D', '@SP', 'D=M', '@5', 'D=D-A', '@0', 'D=D-A', '@ARG', 'M=D', '@SP', 'D=M', '@LCL',
+                      'M=D', '@Sys.init', '0;JMP']
+        return asmstrlist
+    def ReturnTemplate(self):
+        asmstrlist = ['@LCL', 'D=M', '@R13', 'M=D', '@5', 'D=D-A', 'A=D', 'D=M', '@R14', 'M=D', '@SP', 'M=M-1', 'A=M', 'D=M', '@ARG',
+                      'A=M', 'M=D', '@ARG', 'D=M', '@SP', 'M=D+1', '@R13', 'M=M-1', 'A=M', 'D=M', '@THAT', 'M=D', '@R13', 'M=M-1', 'A=M',
+                      'D=M', '@THIS', 'M=D', '@R13', 'M=M-1', 'A=M', 'D=M', '@ARG', 'M=D', '@R13', 'M=M-1', 'A=M', 'D=M', '@LCL', 'M=D',
+                      '@R14', 'A=M', '0;JMP']
+        return asmstrlist
+    def CallTemplate(self,callname,number):
+        if(self.callcounter.get(callname,-1)!=-1):
+            value = self.callcounter.get(callname) + 1
+            self.callcounter.update({callname:value})
+        else:
+            self.callcounter.update({callname:0})
+        asmstrlist = ['@{callname}$ret.{counter}'.format(callname = callname,counter = self.callcounter.get(callname)), 'D=A', '@SP', 'M=M+1', 'A=M-1', 'M=D', '@LCL', 'D=M', '@SP', 'M=M+1',
+                      'A=M-1', 'M=D', '@ARG', 'D=M', '@SP', 'M=M+1', 'A=M-1', 'M=D', '@THIS', 'D=M', '@SP', 'M=M+1', 'A=M-1', 'M=D', '@THAT',
+                      'D=M', '@SP', 'M=M+1', 'A=M-1', 'M=D', '@SP', 'D=M', '@5', 'D=D-A', '@{number}'.format(number = number), 'D=D-A', '@ARG', 'M=D',
+                      '@SP', 'D=M', '@LCL', 'M=D', '@{callname}'.format(callname = callname), '0;JMP', '({callname}$ret.{counter})'.format(callname = callname,counter = self.callcounter.get(callname))]
+        return asmstrlist
+    def FunctrionTemplate(self,functioname,numlocals):
+        if(str(functioname).startswith("Sys")):
+            asmstrlist = ["({functioname}$ret.0)".format(functioname=functioname)]
+            localTemplate =['@LCL', 'D=M', '@R13', 'M=D', '@5', 'D=D-A', 'A=D', 'D=M', '@R14', 'M=D', '@SP', 'M=M-1', 'A=M', 'D=M', '@ARG', 'A=M',
+                            'M=D', '@ARG', 'D=M', '@SP', 'M=D+1', '@R13', 'M=M-1', 'A=M', 'D=M', '@THAT', 'M=D', '@R13', 'M=M-1', 'A=M', 'D=M', '@THIS',
+                            'M=D', '@R13', 'M=M-1','A=M', 'D=M', '@ARG', 'M=D', '@R13', 'M=M-1', 'A=M', 'D=M', '@LCL', 'M=D', '@R14', 'A=M', '0;JMP']
+            asmstrlist.extend(localTemplate)
+        else:
+            asmstrlist = ["({functioname})".format(functioname=functioname)]
+            for numlocal in range(0,numlocals):
+                localTemplate = ['@0', 'D=A', '@SP', 'M=M+1', 'A=M-1', 'M=D', '@LCL', 'D=M', '@{number}'.format(number = numlocal), 'D=D+A', '@R13',
+                             'M=D', '@SP', 'AM=M-1', 'D=M', '@R13', 'A=M', 'M=D']
+                asmstrlist.extend(localTemplate)  #Maybe += also work
+        return asmstrlist
 
     def LabelTemplate(self,variable,filename):
-        asmstrlist = ["({filename}.main${variable})".format(filename =filename,variable = variable)]
+        if(self.initFinish):
+            asmstrlist = ["(Sys.init${variable})".format(variable=variable)]
+        else:
+            asmstrlist = ["({filename}.main${variable})".format(filename =filename,variable = variable)]
         return asmstrlist
 
     def GotoTemplate(self,variable,filename):
-        asmstrlist = ["@{filename}.main${variable}".format(filename =filename,variable = variable),"0;JMP"]
+        if(self.initFinish):
+            asmstrlist = ["@Sys.init${variable}".format(variable=variable), "0;JMP"]
+        else:
+            asmstrlist = ["@{filename}.main${variable}".format(filename =filename,variable = variable),"0;JMP"]
         return asmstrlist
     def IFGotoTemplate(self,variable,filename):
         asmstrlist = ['@SP', 'AM=M-1', 'D=M', '@1', 'D=D+A', '@{filename}.main${variable}'.format(filename =filename,variable = variable), 'D;JNE']
         return asmstrlist
+
 
     def ArithmeticTemplate(self,variable,arithType):
         asmstrlist = []
@@ -113,7 +196,7 @@ class CodeWriter(object):
                 print("Can't match any ArithType")
         return asmstrlist
 
-    def PushPopTemplate(self,number,variable,popOrpushType): #Todo
+    def PushPopTemplate(self,number,variable,popOrpushType,filename): #Todo
         asmstrlist = []
         if(variable):
             match popOrpushType:
@@ -122,7 +205,7 @@ class CodeWriter(object):
                 case 1:
                     asmstrlist = ['@LCL', 'D=M', '@'+str(number), 'A=D+A', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
                 case 2:
-                    asmstrlist = ['@StaticTest.{number}'.format(number=number), 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
+                    asmstrlist = ['@{filename}.{number}'.format(filename = self.filename,number=number), 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
                 case 3 :
                     asmstrlist = ["@"+str(number),"D=A","@SP","M=M+1","A=M-1","M=D"]  #Push Constant
                 case 4:
@@ -145,7 +228,7 @@ class CodeWriter(object):
                 case 1:
                     asmstrlist = ['@LCL', 'D=M', '@' + str(number), 'D=D+A', '@R13', 'M=D', '@SP', 'AM=M-1', 'D=M', '@R13', 'A=M', 'M=D']
                 case 2:
-                    asmstrlist = ['@SP', 'AM=M-1', 'D=M', '@StaticTest.{number}'.format(number=number), 'M=D']
+                    asmstrlist = ['@SP', 'AM=M-1', 'D=M', '@{filename}.{number}'.format(filename = filename ,number=number), 'M=D']
                 case 3 :
                     asmstrlist = ["@"+str(number),"D=A","@SP","M=M-1","A=M+1","M=D"]  #Pop Constant
                 case 4:

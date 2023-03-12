@@ -37,4 +37,14 @@ memoryAccessType = {
 
 
 MemoryAccessCommands = ["pop","push"]
+CommandTypes = {"C_ARITHMETIC":1,
+    "C_LABEL":2,
+    "C_GOTO":3,
+    "C_IF":4,
+    "C_POP":5,
+    "C_PUSH":6,
+    "C_FUNCTION":7,
+    "C_RETURN":8,
+    "C_CALL":9
+}
 

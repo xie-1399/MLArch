@@ -1,5 +1,6 @@
 # 比较与测试文件内容的差异,一些共有的类
 import operator
+import os
 import re
 
 
@@ -66,4 +67,12 @@ def getfileAritrhTemplate(file,content):
         strlist.pop(-1)
         return strlist
 
-# print(getfileAritrhTemplate("../VMTranslator/test/BasicLoop.asm", "//if-goto LOOP_START"))
+def judgeBoot(filename):
+    filename = str(filename).split("/")[-1]
+    if(str(filename).startswith("Sys")):
+        print(filename + " is Boot vmfile!")
+        return True
+    else:
+        return False
+
+# print(getfileAritrhTemplate("../VMTranslator/test/fibonacciElement.asm", "//call Main.fibonacci 1"))

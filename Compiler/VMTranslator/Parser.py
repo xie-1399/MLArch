@@ -55,6 +55,7 @@ class Parser(object):
         else:
             print("Advance Command is None")
 
+    #Maybe just a function
     def commandType(self,vmcode):  #Todo
         #加入控制流指令
         if(str(vmcode).startswith("pop")):
@@ -67,19 +68,25 @@ class Parser(object):
             return "C_GOTO"
         elif(str(vmcode).startswith("if-goto")):
             return "C_IF"
+        elif(str(vmcode).startswith("return")):
+            return "C_RETURN"
+        elif(str(vmcode).startswith("call")):
+            return "C_CALL"
+        elif(str(vmcode).startswith("function")):
+            return "C_FUNCTION"
         else:
             return "C_ARITHMETIC"
 
 
     #返回当前命令的第一个参数
     def Arg1(self,vmcode,Commandtype): #Todo
-        if(Commandtype == "C_ARITHMETIC"):
+        if(Commandtype == "C_ARITHMETIC" or Commandtype == "C_RETURN"):
             return vmcode
         else:
              return str(vmcode).split(" ")[1]
 
     def Arg2(self,vmcode,Commandtype):
-        if(Commandtype == "C_PUSH" or Commandtype == "C_POP"):
-            return str(vmcode).split(" ")[2]
+        if(Commandtype == "C_PUSH" or Commandtype == "C_POP" or Commandtype == "C_FUNCTION" or Commandtype =="C_CALL"):
+            return str(vmcode).split(" ")[2] # Why not -1
         else:
             return None
