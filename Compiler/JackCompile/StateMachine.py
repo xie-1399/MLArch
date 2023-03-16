@@ -20,3 +20,26 @@ print(model.state)   # solid
 # 状体转变
 model.melt()
 print(model.state)   # liquid
+
+class solid(object):
+    def __init__(self):
+        self.state = 'solid'
+    def action(self,con):
+        print("This is solid !")
+    def change(self,newstate):
+        self.state = newstate
+
+class liquid():
+    def __init__(self):
+        pass
+
+class gas():
+    def __init__(self):
+        pass
+
+class plasma():
+    def __init__(self):
+        pass
+
+
+
