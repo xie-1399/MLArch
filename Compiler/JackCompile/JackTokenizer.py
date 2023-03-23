@@ -1,5 +1,4 @@
 #根据对应的语法规则将输入转化为对应的字元
-
 class Tokenizer(object):
     def __init__(self,file):
         if(not str(file).endswith("jack")):

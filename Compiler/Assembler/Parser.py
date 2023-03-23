@@ -42,6 +42,8 @@ class Parse:
                 asmline = asmline.rstrip("\n")
                 asmline = asmline.replace(" ","")
                 asmvalidcode.append(str(asmline))
+        if "" in asmvalidcode:
+            asmvalidcode.remove("")  #Todo
         return asmvalidcode
 
     def hasMoreCommands(self,asmvalidcodes):
