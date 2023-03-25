@@ -50,7 +50,7 @@
 <keyword> while </keyword>
 <symbol> ( </symbol>
 <identifier> i </identifier>
-<symbol> &lt; </symbol>
+<symbol> < </symbol>
 <identifier> length </identifier>
 <symbol> ) </symbol>
 <symbol> { </symbol>
@@ -88,7 +88,7 @@
 <keyword> while </keyword>
 <symbol> ( </symbol>
 <identifier> i </identifier>
-<symbol> &lt; </symbol>
+<symbol> < </symbol>
 <identifier> length </identifier>
 <symbol> ) </symbol>
 <symbol> { </symbol>
