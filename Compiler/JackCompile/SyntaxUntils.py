@@ -37,12 +37,9 @@ tokenType = {
     3:"INT-CONST",4:"STRING_COUNT",5:"SYMBOL",
 }
 
-
 KeepSignal = ["class","classVarDec","subroutineDec","parameterList","subroutineBody","varDec"
               ,"statements","whileStatement","ifStatement","returnStatement","letStatement"
               ,"doStatement","expression","term","expressionlist"]
-Signal = []
-
 
 #自定义spilt Todo a little slow
 def my_spilt(string,regex):
@@ -75,3 +72,7 @@ def writeTxmlfile(tokens):
                 line = "<" + type.get(tk_key) + ">" + " " + tk_value.replace("\"","") + " " + "</" + type.get(tk_key) + ">" + "\n"
                 xmlfile.write(line)
         xmlfile.write("</tokens>\n")
+
+
+def wtitexmlfile(tokens):
+    pass

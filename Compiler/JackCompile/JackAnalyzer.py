@@ -10,4 +10,4 @@ if __name__ == '__main__':
         tokensobject = Tokenizer(file)
         writeTxmlfile(tokensobject.tokens)
         #Compare file
-        print(ContentIsSame(file.rstrip(".jack") + "T.xml","./test.xml"))
+        print(ContentIsSame(file.rstrip(".jack") + "T.xml","./testT.xml"))
