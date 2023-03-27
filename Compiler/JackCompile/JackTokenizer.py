@@ -14,7 +14,7 @@ class Tokenizer(object):
                 #第一个词就表示了对应的句子类型,需要进行处理
                 self.tokens.extend(self.Process(self.jacklines[0]))
                 self.jacklines.pop(0)
-            print(self.tokens)
+            #print(self.tokens)
             jackfile.close()
 
     def Process(self,jackline):
