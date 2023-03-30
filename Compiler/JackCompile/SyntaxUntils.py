@@ -1,5 +1,7 @@
 #词法分析的一些工具类
 import re
+from collections import deque
+
 KeyWords = [
     "CLASS",
     "DO",
@@ -65,14 +67,52 @@ def my_spilt(string,regex):
 
 def writeTxmlfile(tokens):
     type = {"KEYWORD":"keyword","IDENTIFIER":"identifier","INT-CONST":"integerConstant","STRING_COUNT":"stringConstant","SYMBOL":"symbol"}
-    with open("./test.xml","w+") as xmlfile:
+    with open("./testT.xml","w+") as xmlfile:
         xmlfile.write("<tokens>\n")
         for tk in tokens:
             for tk_key,tk_value in tk.items():
                 line = "<" + type.get(tk_key) + ">" + " " + tk_value.replace("\"","") + " " + "</" + type.get(tk_key) + ">" + "\n"
                 xmlfile.write(line)
         xmlfile.write("</tokens>\n")
+        xmlfile.close()
 
+def writexmlfile(tokens,showorwrite):
+    type = {"KEYWORD": "keyword", "IDENTIFIER": "identifier", "INT-CONST": "integerConstant",
+            "STRING_COUNT": "stringConstant", "SYMBOL": "symbol"}
+    with open("./test.xml","w+") as xmlfile:
+        for index , tk in enumerate(tokens,1):
+            for tk_key,tk_value in tk.items():
+                if(tk_key == "start"):
+                    line = "<" + tk_value + ">" + "\n"
+                elif(tk_key == "end"):
+                    line = "<" + "/" + tk_value + ">" + "\n"
+                else:
+                    line = "<" + type.get(tk_key) + ">" + " " + tk_value.replace("\"", "") + " " + "</" + type.get(tk_key) + ">" + "\n"
+                if(not showorwrite):
+                    xmlfile.write(line)
+                else:
+                    print("{index} : {line}".format(index = index,line = line))
+        xmlfile.close()
 
-def wtitexmlfile(tokens):
-    pass
+def expressionutil(finish,expressionlist,statetoken,addlist):
+    if(addlist):
+        if(finish):
+            expressionlist.append({"end": "term"})
+            expressionlist.append({"end": "expression"})
+            expressionlist.append({"end": "expressionList"})
+            expressionlist.append(statetoken)
+        else:
+            expressionlist.append(statetoken)
+            expressionlist.append({"start": "expressionList"})
+            expressionlist.append({"start": "expression"})
+            expressionlist.append({"start": "term"})
+
+    else:
+        if(finish):
+            expressionlist.append({"end": "term"})
+            expressionlist.append({"end": "expression"})
+            expressionlist.append(statetoken)
+        else:
+            expressionlist.append(statetoken)
+            expressionlist.append({"start": "expression"})
+            expressionlist.append({"start": "term"})

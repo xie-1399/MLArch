@@ -1,4 +1,6 @@
 #将原有的字元列表加上对应的开始与终止符
+from Compiler.JackCompile.SyntaxUntils import writexmlfile
+from StateMachine import *
 class CompilationEngine(object):
     def __init__(self,tokenlist):
         self.tokenlist = tokenlist
@@ -6,7 +8,7 @@ class CompilationEngine(object):
         self.parameterlist = []
         compileclass = self.CompileClass()
         self.CompileClassVarDec(compileclass)
-        # self.CompileSubroutine(compileclass)
+        self.CompileSubroutine(compileclass)
 
     def CompileClass(self):  #这里涉及一个问题就是拷贝与深拷贝的问题，一定需要注意
         classCompile = False
@@ -61,31 +63,70 @@ class CompilationEngine(object):
     def CompileSubroutine(self,compileclass):
         compilesub = False
         compilebody = []
+        compilestatement = []
         compileparameter = False
         if(compileclass):
             satisfify = ["function","method","constructor"]
-            for tk in range(0, len(self.tokenlist)):
+            tk, token_length = 0, len(self.tokenlist)
+            while(tk < token_length):
                 if ((self.tokenlist[tk].get("KEYWORD")) in satisfify):
-                    self.tokenlist.insert(tk,{"subroutineDec": "start"})
+                    self.tokenlist.insert(tk,{"start":"subroutineDec" })
+                    tk += 1
+                    token_length += 1
                     compilesub = True
+
                 if(compilesub and self.tokenlist[tk].get("SYMBOL") == "("):
-                    self.tokenlist.insert(tk+1,{"parameterList":"start"})
+                    self.tokenlist.insert(tk+1,{"start":"parameterList"})
+                    tk += 1
+                    token_length += 1
                     compileparameter = True
                     temp_tkpara = tk
                     while(self.tokenlist[temp_tkpara].get("SYMBOL") != ")"):
                         temp_tkpara += 1
                         self.parameterlist.append(self.tokenlist[temp_tkpara])
                     self.CompileParameterList(compileparameter,self.parameterlist)
-                    self.tokenlist.insert(temp_tkpara, {"parameterList": "end"})
+                    self.tokenlist.insert(temp_tkpara, {"end":"parameterList" })
+                    tk += 1
+                    token_length += 1
+
                 if (compilesub and self.tokenlist[tk].get("SYMBOL") == "{"):
-                    self.tokenlist.insert(tk, {"subroutineBody": "start"})
+                    self.tokenlist.insert(tk, {"start":"subroutineBody" })
+                    tk += 1
+                    token_length += 1
+
                     temp_tkbody = tk
                     while(self.tokenlist[temp_tkbody].get("SYMBOL") != "}"):
                         temp_tkbody += 1
                         compilebody.append(self.tokenlist[temp_tkbody])
-                    self.CompileVarDec(compilebody,tk)
-                    self.CompileStatements(compilebody,tk)
-                    self.tokenlist.insert(temp_tkbody + 1, {"subroutineBody": "end"})
+                    statementstart = self.CompileVarDec(tk + 1,len(compilebody))
+                    compilerbodylist = self.CompileBodyList(compilebody)
+
+                    statetemp = statementstart
+                    while(self.tokenlist[statementstart].get("KEYWORD") != "return"):
+                        compilestatement.append(self.tokenlist[statementstart])
+                        statementstart += 1
+                    compilestatement.append(self.tokenlist[statementstart])
+                    compilestatement.append(self.tokenlist[statementstart + 1])
+                    beforecom = self.tokenlist[0:statetemp]
+                    aftercom = self.tokenlist[statementstart + 2:]
+                    print("CompileStatement:",self.tokenlist[statetemp:statementstart + 2])
+
+                    compilestatementlist = self.CompileStatementList(compilestatement)
+
+                    #Machine Conver
+                    Statementmachine = Statement(compilestatement,statetemp,statementstart + 1) #contains before and after
+                    expression = Statementmachine.expression
+                    # self.tokenlist = beforecom.extend(compilestatement).extend(expression).extend(aftercom)
+                    # writexmlfile(Statementmachine.expression,True)
+
+                    self.tokenlist.insert(temp_tkbody + 1, {"end":"subroutineBody"})
+                    self.tokenlist = beforecom + expression + aftercom
+                    compilebody.clear()  #每个body单独分开
+                    compilestatement.clear()
+                    compilesub = False
+                    tk += 1
+                    token_length += 1
+                tk += 1
         else:
             return None
 
@@ -95,40 +136,36 @@ class CompilationEngine(object):
         else:
             return None
 
-    def CompileVarDec(self,compilebody,bodystart):
+    def CompileBodyList(self, compilebody):
+            return compilebody  # Todo can return the value
+
+    def CompileStatementList(self, compilestatement):
+            return compilestatement  # Todo can return the value
+
+    def CompileVarDec(self,bodystart,bodyend):
         statements = ["let","if","else","while","do","return"]
-        varfirst = True
-        for index , bodysig in enumerate(compilebody,1):
-            if(bodysig.get("KEYWORD") == "var" and varfirst):
-                self.tokenlist.insert(bodystart + index, {"varDec": "start"}) #Todo
-                varfirst = False
-            elif(bodysig.get("KEYWORD") in statements):
-                self.tokenlist.insert(bodystart + index, {"varDec": "end"})
+        tk, token_length = bodystart, bodyend
+        while (tk < token_length):
+        #for index , bodysig in enumerate(compilebody,1):
+            if(self.tokenlist[tk].get("KEYWORD") == "var"):
+                self.tokenlist.insert(tk, {"start": "varDec"}) #Todo
+                tk += 1
+                token_length += 1
+            elif(self.tokenlist[tk].get("SYMBOL") == ";"):
+                self.tokenlist.insert( tk + 1, {"end":"varDec"})
+                tk += 1
+                token_length += 1
+            if(self.tokenlist[tk].get("KEYWORD") in statements):
+                break
+            tk =tk + 1
+        return tk
 
-    # Try to use the state machine
-    def CompileStatements(self,compilebody,bodystart):
-        pass
 
-    def CompileDo(self):
-        pass
 
-    def CompileLet(self):
-        pass
 
-    def CompileWhile(self):
-        pass
 
-    def CompileReturn(self):
-        pass
 
-    def CompileIF(self):
-        pass
 
-    def CompileExpression(self):
-        pass
 
-    def CompileTerm(self):
-        pass
 
-    def CompileExpressionList(self):
-        pass
+

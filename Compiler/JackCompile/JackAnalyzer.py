@@ -5,17 +5,21 @@ from SyntaxUntils import *
 from CompilationEngine import *
 if __name__ == '__main__':
 
-    filelist = ["./test/ArrayTest/Main.jack","./test/ExpressionLessSquare/Main.jack","./test/Square/Main.jack"]
+    filelist = ["./test/ArrayTest/Main.jack"]
+    #,"./test/ExpressionLessSquare/Main.jack","./test/Square/Main.jack"
     compareToken = False
+
     for file in filelist:
         tokensobject = Tokenizer(file)
-        print("before:",tokensobject.tokens)
+        # print("before:",tokensobject.tokens)
         addanaly = CompilationEngine(tokensobject.tokens)
-        print("after:",addanaly.tokenlist)
+        # print("after:",addanaly.tokenlist)
 
         if(compareToken):
             writeTxmlfile(tokensobject.tokens)
         #Compare file
             print(ContentIsSame(file.rstrip(".jack") + "T.xml","./testT.xml"))
 
-
+        else:
+            writexmlfile(addanaly.tokenlist,showorwrite= False)
+            print(ContentIsSame(file.rstrip(".jack") + ".xml", "./test.xml"))

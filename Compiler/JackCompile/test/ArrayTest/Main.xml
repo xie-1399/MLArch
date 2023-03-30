@@ -94,15 +94,12 @@
           <expression>
             <term>
               <identifier> i </identifier>
-            </term>
-            <symbol> &lt; </symbol>
-            <term>
+            <symbol> < </symbol>
               <identifier> length </identifier>
             </term>
           </expression>
           <symbol> ) </symbol>
           <symbol> { </symbol>
-          <statements>
             <letStatement>
               <keyword> let </keyword>
               <identifier> a </identifier>
