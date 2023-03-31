@@ -136,15 +136,12 @@
               <expression>
                 <term>
                   <identifier> i </identifier>
-                </term>
                 <symbol> + </symbol>
-                <term>
                   <integerConstant> 1 </integerConstant>
                 </term>
               </expression>
               <symbol> ; </symbol>
             </letStatement>
-          </statements>
           <symbol> } </symbol>
         </whileStatement>
         <letStatement>
@@ -175,15 +172,12 @@
           <expression>
             <term>
               <identifier> i </identifier>
-            </term>
-            <symbol> &lt; </symbol>
-            <term>
+            <symbol> < </symbol>
               <identifier> length </identifier>
             </term>
           </expression>
           <symbol> ) </symbol>
           <symbol> { </symbol>
-          <statements>
             <letStatement>
               <keyword> let </keyword>
               <identifier> sum </identifier>
@@ -191,9 +185,7 @@
               <expression>
                 <term>
                   <identifier> sum </identifier>
-                </term>
                 <symbol> + </symbol>
-                <term>
                   <identifier> a </identifier>
                   <symbol> [ </symbol>
                   <expression>
@@ -213,15 +205,12 @@
               <expression>
                 <term>
                   <identifier> i </identifier>
-                </term>
                 <symbol> + </symbol>
-                <term>
                   <integerConstant> 1 </integerConstant>
                 </term>
               </expression>
               <symbol> ; </symbol>
             </letStatement>
-          </statements>
           <symbol> } </symbol>
         </whileStatement>
         <doStatement>
@@ -250,9 +239,7 @@
             <expression>
               <term>
                 <identifier> sum </identifier>
-              </term>
-              <symbol> / </symbol>
-              <term>
+                <symbol> / </symbol>
                 <identifier> length </identifier>
               </term>
             </expression>

@@ -6,6 +6,7 @@ class CompilationEngine(object):
         self.tokenlist = tokenlist
         self.engine = []
         self.parameterlist = []
+        self.funcnum = self.functionnum(tokenlist)
         compileclass = self.CompileClass()
         self.CompileClassVarDec(compileclass)
         self.CompileSubroutine(compileclass)
@@ -64,7 +65,6 @@ class CompilationEngine(object):
         compilesub = False
         compilebody = []
         compilestatement = []
-        compileparameter = False
         if(compileclass):
             satisfify = ["function","method","constructor"]
             tk, token_length = 0, len(self.tokenlist)
@@ -107,20 +107,34 @@ class CompilationEngine(object):
                         statementstart += 1
                     compilestatement.append(self.tokenlist[statementstart])
                     compilestatement.append(self.tokenlist[statementstart + 1])
-                    beforecom = self.tokenlist[0:statetemp]
-                    aftercom = self.tokenlist[statementstart + 2:]
-                    print("CompileStatement:",self.tokenlist[statetemp:statementstart + 2])
+                    # print("CompileStatement:",compilestatement)
 
                     compilestatementlist = self.CompileStatementList(compilestatement)
-
                     #Machine Conver
                     Statementmachine = Statement(compilestatement,statetemp,statementstart + 1) #contains before and after
                     expression = Statementmachine.expression
-                    # self.tokenlist = beforecom.extend(compilestatement).extend(expression).extend(aftercom)
                     # writexmlfile(Statementmachine.expression,True)
+                    beforecom = self.tokenlist[0:statetemp]
 
-                    self.tokenlist.insert(temp_tkbody + 1, {"end":"subroutineBody"})
-                    self.tokenlist = beforecom + expression + aftercom
+                    if(self.funcnum == 1):
+                        aftercoms = self.tokenlist[statementstart + 2:]
+                    else:
+                        aftercoms = self.tokenlist[statementstart + 2 : statementstart + 3]
+                        print(aftercoms)
+                    aftercomchange = []
+                    bodycount = 0
+                    for index,aftercom in enumerate(aftercoms):
+                        if(aftercom.get("SYMBOL") == '}' and bodycount == 0):
+                            aftercomchange.append(aftercom)
+                            aftercomchange.append({"end":"subroutineBody"})
+                            bodycount = bodycount + 1
+                        elif(aftercom.get("SYMBOL") == '}' and bodycount == 1):
+                            aftercomchange.append({"end": "subroutineDec"})
+                            aftercomchange.append(aftercom)
+                        else:
+                            aftercomchange.append(aftercom)
+                    self.tokenlist = beforecom + expression + aftercomchange
+
                     compilebody.clear()  #每个body单独分开
                     compilestatement.clear()
                     compilesub = False
@@ -160,7 +174,12 @@ class CompilationEngine(object):
             tk =tk + 1
         return tk
 
-
+    def functionnum(self,tokenlist):
+        number = 0
+        for token in tokenlist:
+            if(token.get("KEYWORD") == "function"):
+                number = number + 1
+        return number
 
 
 
