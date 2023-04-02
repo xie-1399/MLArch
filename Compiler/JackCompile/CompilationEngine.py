@@ -8,7 +8,7 @@ class CompilationEngine(object):
         self.parameterlist = []
         self.funcnum = self.functionnum(tokenlist)
         compileclass = self.CompileClass()
-        self.CompileClassVarDec(compileclass)
+        self.newtokenlist =self.CompileClassVarDec(compileclass)
         self.CompileSubroutine(compileclass)
 
     def CompileClass(self):  #这里涉及一个问题就是拷贝与深拷贝的问题，一定需要注意
@@ -57,6 +57,7 @@ class CompilationEngine(object):
                     token_length += 1
                     break
                 tk += 1
+            return self.tokenlist
         else:
             return None
 
@@ -107,20 +108,20 @@ class CompilationEngine(object):
                         statementstart += 1
                     compilestatement.append(self.tokenlist[statementstart])
                     compilestatement.append(self.tokenlist[statementstart + 1])
-                    # print("CompileStatement:",compilestatement)
+                    print("CompileStatement:",compilestatement)
 
                     compilestatementlist = self.CompileStatementList(compilestatement)
                     #Machine Conver
                     Statementmachine = Statement(compilestatement,statetemp,statementstart + 1) #contains before and after
                     expression = Statementmachine.expression
                     # writexmlfile(Statementmachine.expression,True)
-                    beforecom = self.tokenlist[0:statetemp]
+                    beforecom = self.tokenlist[0:statetemp] #Todo
 
                     if(self.funcnum == 1):
                         aftercoms = self.tokenlist[statementstart + 2:]
                     else:
                         aftercoms = self.tokenlist[statementstart + 2 : statementstart + 3]
-                        print(aftercoms)
+                        self.funcnum = self.funcnum - 1
                     aftercomchange = []
                     bodycount = 0
                     for index,aftercom in enumerate(aftercoms):
@@ -133,7 +134,9 @@ class CompilationEngine(object):
                             aftercomchange.append(aftercom)
                         else:
                             aftercomchange.append(aftercom)
-                    self.tokenlist = beforecom + expression + aftercomchange
+
+                    # 将engine定为需要表达的目标
+                    self.engine.extend(beforecom + expression + aftercomchange)
 
                     compilebody.clear()  #每个body单独分开
                     compilestatement.clear()

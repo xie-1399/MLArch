@@ -10,10 +10,9 @@ from Compiler.JackCompile.SyntaxUntils import expressionutil
 # if and while may contain other statement
 class Statement(object):
     '''
-
-
     : 使用的列表的append操作过多
     : Statements只放在开头以及结尾即可
+    : 还是将if 与 else 当作两个不同的状态进行处理
     '''
     def __init__(self, tokens, begin, end):
 
@@ -31,10 +30,11 @@ class Statement(object):
         state_ = 0
         letstate = letStatement()
         ifstate = ifStatement()
+        elsestate = elseStatement()
         whilestate = whileStatement()
         dostate = doStatement()
         returnstate = returnStatement()
-        statelist = [letstate,ifstate,whilestate,dostate,returnstate]
+        statelist = [letstate,ifstate,elsestate,whilestate,dostate,returnstate]
         print("The StateMachine start!") # Todo
         self.statetokens.append({"start": "statements"})
         for index, token in enumerate(self.tokens):
@@ -44,13 +44,13 @@ class Statement(object):
             elif (token.get("KEYWORD") == "if"):
                 state_ = 1
             elif (token.get("KEYWORD") == "else"):
-                state_ = 1
-            elif (token.get("KEYWORD") == "while"):
                 state_ = 2
-            elif (token.get("KEYWORD") == "do"):
+            elif (token.get("KEYWORD") == "while"):
                 state_ = 3
-            elif (token.get("KEYWORD") == "return"):
+            elif (token.get("KEYWORD") == "do"):
                 state_ = 4
+            elif (token.get("KEYWORD") == "return"):
+                state_ = 5
             # elif (token.get("SYMBOL") == "{" and len(self.stack) == 0):
             #     self.statetokens.append({"start": "statements"})
             # elif (token.get("SYMBOL") == "}" and len(self.stack) == 0 ):
@@ -60,7 +60,13 @@ class Statement(object):
                 self.statetokens.extend(statelist[temp].statetokens)
                 statelist[temp].statetokens.clear()
                 if(endsignal) == "ifend":
+                    self.statetokens.append(token)
                     self.statetokens.append({"end": "ifStatement"})
+                    continue
+                elif (endsignal) == "elseend":
+                    self.statetokens.append(token)
+                    self.statetokens.append({"end": "elseStatement"})
+                    continue
                 elif(endsignal) == "whileend":
                     self.statetokens.append(token)
                     self.statetokens.append({"end": "whileStatement"})
@@ -69,7 +75,7 @@ class Statement(object):
             if temp != state_:
                 self.statetokens.extend(statelist[temp].statetokens)
                 statelist[temp].statetokens.clear()
-            if(state_ == 1 or state_ == 2):
+            if(state_ == 1 or state_ == 2 or state_ == 3):
                 statelist[state_].action(token, self.stack)
             # elif(state_ == 4):
             #     statelist[state_].action(token)
@@ -103,27 +109,31 @@ class ifStatement(object):  # A little difference
     def __init__(self):
         self.state = 'ifStatement'
         self.statetokens = []
-        self.elsetoken = False
 
     def action(self, iftokens,stack):
         if (iftokens.get("KEYWORD") == "if"):
             self.statetokens.append({"start": "ifStatement"})
             self.statetokens.append(iftokens)
-        elif (iftokens.get("KEYWORD") == "else"):
-            self.elsetoken = True
-            self.statetokens.append({"start": "elseStatement"})
+        elif(iftokens.get("SYMBOL") == "{"):
             self.statetokens.append(iftokens)
-        elif(iftokens.get("KEYWORD") == "{"):
             stack.append("ifend")
-        elif (iftokens.get("SYMBOL") == "}" and not self.elsetoken):
-            self.statetokens.append(iftokens)
-            self.statetokens.append({"end": "ifStatement"})
-        elif (iftokens.get("SYMBOL") == "}" and self.elsetoken):
-            self.statetokens.append(iftokens)
-            self.statetokens.append({"end": "elseStatement"})
         else:
             self.statetokens.append(iftokens)
 
+class elseStatement(object):
+    def __init__(self):
+        self.state = 'elseStatement'
+        self.statetokens = []
+
+    def action(self, elsetokens,stack):
+        if (elsetokens.get("KEYWORD") == "else"):
+            self.statetokens.append({"start": "elseStatement"})
+            self.statetokens.append(elsetokens)
+        elif(elsetokens.get("SYMBOL") == "{"):
+            self.statetokens.append(elsetokens)
+            stack.append("elseend")
+        else:
+            self.statetokens.append(elsetokens)
 
 #use stack to add end while
 class whileStatement(object):
@@ -136,10 +146,6 @@ class whileStatement(object):
             self.statetokens.append({"start": "whileStatement"})
             self.statetokens.append(whiletokens)
         elif(whiletokens.get("SYMBOL") == "{"):
-            self.statetokens.append(whiletokens)
-            stack.append("whileend")
-        elif(whiletokens.get("SYMBOL") == "("):
-
             self.statetokens.append(whiletokens)
             stack.append("whileend")
         else:
@@ -200,22 +206,55 @@ def Expressiontoken(statetokens):
                 tk = tk + 1
         if(statetokens[tk].get("start") == "ifStatement"):
             flag = False
-            while(statetokens[tk].get("end") != "ifStatement"):
-                if(flag):
-                    expressionlist.append(statetokens[tk])
-                else:
-                    if(statetokens[tk].get("SYMBOL") == "(" and statetokens[tk + 1].get("SYMBOL") != ")"):
-                        expressionutil(False, expressionlist, statetokens[tk], True)
-                    elif(statetokens[tk].get("SYMBOL") == "(" and statetokens[tk + 1].get("SYMBOL") == ")"):
-                        expressionlist.append(statetokens[tk])
-                        expressionlist.append({"start": "expressionList"})
-                        expressionlist.append({"end": "expressionList"})
-                        expressionlist.append(statetokens[tk+1])
+            while (statetokens[tk].get("end") != "ifStatement"):
+                if (statetokens[tk].get("start") == "letStatement"):
+                    while (statetokens[tk].get("end") != "letStatement"):
+                        expresslet(statetokens[tk], expressionlist)
                         tk = tk + 1
+                    continue
+                if (statetokens[tk].get("start") == "doStatement"):
+                    while (statetokens[tk].get("end") != "doStatement"):
+                        expressDo(statetokens[tk], expressionlist)
+                        tk = tk + 1
+                    continue
+                if (flag):
+                    expressionlist.append(statetokens[tk])
+
+                else:
+                    if (statetokens[tk].get("SYMBOL") == "("):
+                        expressionutil(False, expressionlist, statetokens[tk], False)
                     elif (statetokens[tk].get("SYMBOL") == ")"):
-                        expressionutil(True, expressionlist, statetokens[tk], True)
+                        expressionutil(True, expressionlist, statetokens[tk], False)
                     elif (statetokens[tk].get("SYMBOL") == "{"):
                         flag = True
+                        expressionlist.append(statetokens[tk])
+                    else:
+                        expressionlist.append(statetokens[tk])
+                tk = tk + 1
+        if (statetokens[tk].get("start") == "elseStatement"):
+            flag = False
+            while (statetokens[tk].get("end") != "elseStatement"):
+                if (statetokens[tk].get("start") == "letStatement"):
+                    while (statetokens[tk].get("end") != "letStatement"):
+                        expresslet(statetokens[tk], expressionlist)
+                        tk = tk + 1
+                    continue
+                if (statetokens[tk].get("start") == "doStatement"):
+                    while (statetokens[tk].get("end") != "doStatement"):
+                        expressDo(statetokens[tk], expressionlist)
+                        tk = tk + 1
+                    continue
+                if (flag):
+                    expressionlist.append(statetokens[tk])
+
+                else:
+                    if (statetokens[tk].get("SYMBOL") == "("):
+                        expressionutil(False, expressionlist, statetokens[tk], False)
+                    elif (statetokens[tk].get("SYMBOL") == ")"):
+                        expressionutil(True, expressionlist, statetokens[tk], False)
+                    elif (statetokens[tk].get("SYMBOL") == "{"):
+                        flag = True
+                        expressionlist.append(statetokens[tk])
                     else:
                         expressionlist.append(statetokens[tk])
                 tk = tk + 1
