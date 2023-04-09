@@ -1,5 +1,6 @@
 #将对应的Hack语言的助记符转化为二进制码
-from signalUntils import *
+from Compiler.Assembler.signalUntils import fillzero, DEST, Comps, JUMP
+
 
 class Code(object):
     def __init__(self,signallists):
