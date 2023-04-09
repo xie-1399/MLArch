@@ -1,4 +1,6 @@
-from CommandsTable import *
+from Compiler.VMTranslator.CommandsTable import CommandTypes, ArithmeticType, ArithmeticCommands, memoryAccessType
+
+
 #将对应的vm命令翻译成Hack汇编代码，需要写入对应的asm文件
 #这里可能在A寄存器上行为有一些奇怪，可以想象成是在保护对应的现场一样
 #如果是push/pop一个数的流程 （1）把这个数先要存到对应的D寄存器里面去（通过A寄存器） （2）然后对应进栈，栈顶（+-），将之前的Sp值存入A （3）数据进入对应的内存单元
@@ -41,7 +43,12 @@ class CodeWriter(object):
                         self.writeCall(vmcode)
                     case _:
                         print("commandType is not valid!")
-            asmfile.write(str(self.asmwritelist))
+            for asmwrites in self.asmwritelist:
+                if(len(asmwrites) > 1):
+                    for asmwrite in asmwrites:
+                        asmfile.write(str(asmwrite)+'\n')
+                    else:
+                        continue
 
     #算数操作对应的汇编代码
     def writeArithmetic(self,vmcode):

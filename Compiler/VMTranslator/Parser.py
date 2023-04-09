@@ -40,6 +40,8 @@ class Parser(object):
                     vmline = vmline.split("//")[0]
                 #vmline = vmline.replace(" ","") #中间的空格暂时不用去除
                 vmcodes.append(str(vmline))
+        if "" in vmcodes:
+            vmcodes.remove("")  #Todo
         return vmcodes
 
     def hasMoreCommands(self,vmcodes):
