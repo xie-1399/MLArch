@@ -11,7 +11,7 @@ def fresh_name():
     _name += 1
     return name
 
-class Variable(object):
+class Variable_(object):
     def __init__(self,value,name = None): # Name?
         self.value = value
         self.name = name or fresh_name() #节点名字
@@ -36,7 +36,7 @@ class Variable(object):
 
     @staticmethod
     def constant(value,name = None):
-        return Variable(value,name)
+        return Variable_(value,name)
 #表示函数与变量之间的关系的一种数据结构
 class Tape(NamedTuple):
     input:List[str]
@@ -60,7 +60,7 @@ def reset_tape():
 #乘法的反向自动微分
 def ops_mul(self,other):
     #foreward
-    result = Variable(self.value * other.value)
+    result = Variable_(self.value * other.value)
     #add to the Tape
     def propagate(dl_doutputs):
         dl_dx, = dl_doutputs
@@ -78,12 +78,12 @@ def ops_mul(self,other):
 
 def ops_add(self, other):
     # foreward
-    result = Variable(self.value + other.value)
+    result = Variable_(self.value + other.value)
     # add to the Tape
     def propagate(dl_doutputs):
         dl_dx, = dl_doutputs
-        dx_dself = Variable(1.0)
-        dx_dother = Variable(1.0)
+        dx_dself = Variable_(1.0)
+        dx_dother = Variable_(1.0)
         dl_dself = dl_dx * dx_dself
         dl_dother = dl_dx * dx_dother
         dl_dinputs = [dl_dself, dl_dother]
@@ -96,12 +96,12 @@ def ops_add(self, other):
 
 def ops_sub(self, other):
     # foreward
-    result = Variable(self.value - other.value)
+    result = Variable_(self.value - other.value)
     # add to the Tape
     def propagate(dl_doutputs):
         dl_dx, = dl_doutputs
-        dx_dself = Variable(1.0)
-        dx_dother = Variable(-1.0)
+        dx_dself = Variable_(1.0)
+        dx_dother = Variable_(-1.0)
         dl_dself = dl_dx * dx_dself
         dl_dother = dl_dx * dx_dother
         dl_dinputs = [dl_dself, dl_dother]
@@ -114,11 +114,11 @@ def ops_sub(self, other):
 
 def ops_sin(self):
     # foreward
-    result = Variable(np.sin(self.value))
+    result = Variable_(np.sin(self.value))
     # add to the Tape
     def propagate(dl_doutputs):
         dl_dx, = dl_doutputs
-        dl_dself = dl_dx * Variable(np.cos(self.value))
+        dl_dself = dl_dx * Variable_(np.cos(self.value))
         dl_dinputs = [dl_dself]
         return dl_dinputs
 
@@ -128,12 +128,12 @@ def ops_sin(self):
 
 def ops_log(self):
     # foreward
-    result = Variable(np.log(self.value))
+    result = Variable_(np.log(self.value))
 
     # add to the Tape
     def propagate(dl_doutputs):
         dl_dx, = dl_doutputs
-        dl_dself = dl_dx * Variable(1 / self.value)
+        dl_dself = dl_dx * Variable_(1 / self.value)
         dl_dinputs = [dl_dself]
         return dl_dinputs
 
@@ -144,7 +144,7 @@ def ops_log(self):
 #根据Tape计算梯度,Need to understand
 def grad(l,results,showall=False):
     dl_d = {}  # map dL/dX for all values X
-    dl_d[l.name] = Variable(1.)
+    dl_d[l.name] = Variable_(1.)
 
     def gather_grad(entries):
         return [dl_d[entry] if entry in dl_d else None for entry in entries]
@@ -166,9 +166,9 @@ def grad(l,results,showall=False):
 if __name__ == '__main__':
     #Forward
     reset_tape()
-    x = Variable.constant(2., name='v-1')
-    y = Variable.constant(5., name='v0')
-    f = Variable.log(x) + x * y - Variable.sin(y)
+    x = Variable_.constant(2., name='v-1')
+    y = Variable_.constant(5., name='v0')
+    f = Variable_.log(x) + x * y - Variable_.sin(y)
     print(f)
     #Backward
     dx, dy = grad(f, [x, y])
