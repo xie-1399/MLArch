@@ -22,5 +22,6 @@ x = Variable(dim=(2, 1), init=True, trainable=False)
 w = Variable(dim=(1, 2), init=True, trainable=True)
 b = Variable(dim=(1, 1), init=True, trainable=True)
 
+#重写抽象方法（进行计算）
 output = ops.ADD(ops.MatMul(w, x), b)
-print(x)
+print(output)

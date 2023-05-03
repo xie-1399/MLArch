@@ -3,11 +3,12 @@
 '''
 import sys
 sys.path.append("../core")
-
+import numpy as np
 from Node import Node
 class ADD(Node):
     # 矩阵加法
     def compute(self):
+        self.value = np.zeros(self.parents[0].shape())
         for parent in self.parents:
             self.value += parent.value
 
