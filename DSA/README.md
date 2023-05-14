@@ -12,7 +12,7 @@
 
 难度：🌟🌟🌟
 
-![image](https://github.com/xie-1399/MLArch/blob/TPU/DSA/TPU.png)
+![image](https://github.com/xie-1399/MLArch/blob/master/DSA/TPU.png)
 
 
 
